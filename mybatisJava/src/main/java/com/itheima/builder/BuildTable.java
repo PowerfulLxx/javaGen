@@ -10,6 +10,8 @@ public class BuildTable {
 
     private static final Logger logger = LoggerFactory.getLogger(BuildTable.class);
     private static Connection conn = null;
+
+    private static String SQL_SHOW_TABLE_STATUES = "show table status";
     static {
         String driverName = PropertiesUtils.getProperty("db.driver.name");
         String url = PropertiesUtils.getProperty("db.url");
@@ -27,9 +29,31 @@ public class BuildTable {
         }
     }
 
-    public static void getTables(){
+    public static void getTables() throws SQLException {
         PreparedStatement ps = null;
         ResultSet tableResult = null;
-
+        try {
+            ps = conn.prepareStatement(SQL_SHOW_TABLE_STATUES);
+            tableResult = ps.executeQuery();
+            while (tableResult.next()) {
+                String tableName = tableResult.getString("NAME");
+                String comment = tableResult.getString("COMMENT");
+                logger.info("tableName:{}, comment:{}", tableName, comment);
+            }
+        }
+        catch (Exception e) {
+            logger.error("读取表失败");
+        }
+        finally {
+            if (tableResult != null) {
+                tableResult.close();
+            }
+            if (ps != null) {
+                ps.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
     }
 }
